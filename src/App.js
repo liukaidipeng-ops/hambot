@@ -119,6 +119,7 @@ export class App {
   // ---------- 开局 ----------
   beginMatch(opts) {
     this.endMatch();
+    for (const m of [...this.ui.modals]) m.close('newmatch');
     this.ui.menu.hide();
     this.rig._polarSetByUser = false;
     this.rig.userZoom = 1;

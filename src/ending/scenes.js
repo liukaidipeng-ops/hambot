@@ -290,6 +290,11 @@ export function buildWujiang(stage) {
   const fill = new THREE.DirectionalLight(0x7a8aff, 0.5);
   fill.position.set(6, 5, 8);
   scene.add(fill);
+  // 面光：夕阳余晖从镜头一侧照亮人物
+  const face = new THREE.SpotLight(0xffb088, 26, 14, 0.5, 0.6, 1.2);
+  face.position.set(1.8, 2.6, 4.2);
+  face.target.position.set(0, 1.5, -1.2);
+  scene.add(face, face.target);
 
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshStandardMaterial({ map: groundTexture('grass'), roughness: 1 }));
   ground.rotation.x = -Math.PI / 2;
@@ -450,6 +455,10 @@ export function buildPengcheng(stage) {
   const glow = new THREE.PointLight(0xff5a20, 6, 12);
   glow.position.set(1.5, 1.2, -3);
   scene.add(glow);
+  const face = new THREE.SpotLight(0xff9a60, 18, 12, 0.5, 0.6, 1.2);
+  face.position.set(-1.2, 2.2, 3.6);
+  face.target.position.set(0, 0.9, 0);
+  scene.add(face, face.target);
   const sand = drift(1600, { color: '#c09a70', size: 90, area: [40, 8, 26], speed: 0.1, wind: 6, opacity: 0.45 });
   sand.position.set(0, 0, -4);
   scene.add(sand);

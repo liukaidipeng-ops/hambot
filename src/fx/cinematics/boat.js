@@ -47,6 +47,7 @@ export async function boatCrossing(fx, rec, mover) {
   }
   const flagPole = full ? makeFlag(boat.mats[0], TEAM[team].name, team) : null;
   if (flagPole) {
+    boat.mats.push(flagPole.material);
     flagPole.position.set(-0.55, 0.62, 0);
     flagPole.scale.setScalar(0.8);
     boat.root.add(flagPole);

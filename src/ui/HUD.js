@@ -1,6 +1,7 @@
 // 对局界面：双方信息卡、计时、吃子、操作按钮、棋谱、快捷聊天
 import { h } from './UI.js';
 import { RED, BLACK, PIECE_CHARS, pieceColor, pieceType } from '../../shared/xiangqi.js';
+import { settings } from '../core/settings.js';
 
 export const QUICK_PHRASES = [
   '承让承让', '好棋！', '且慢，容我三思', '快点吧，我等得花都谢了', '失误了……', '这步棋妙啊', '再来一局！', '我的炮已饥渴难耐',
@@ -62,6 +63,14 @@ export class HUD {
       h('div', { class: 'hud-top' }, this.top,
         h('div', { class: 'hud-sys' },
           this.roomTag,
+          this.muteBtn = h('button', {
+            class: 'sys' + (settings.get('muted') ? ' off' : ''),
+            title: '静音',
+            onclick: () => {
+              settings.set('muted', !settings.get('muted'));
+              this.muteBtn.classList.toggle('off', settings.get('muted'));
+            },
+          }, '音'),
           h('button', { class: 'sys', title: '设置', onclick: () => app.actions.settings() }, '设'),
           h('button', { class: 'sys', title: '退出', onclick: () => app.actions.exit() }, '退'))),
       this.banner,

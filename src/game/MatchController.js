@@ -82,6 +82,10 @@ export class MatchController {
 
   // ---------- 输入 ----------
   onScreenTap(cx, cy) {
+    if (this.busy && this.app.fx.playing) {
+      this.app.fx.skip();
+      return;
+    }
     const p = this.app.rig.screenToPlane(cx, cy, 0.13);
     if (!p) return;
     const s = worldToSquare(p.x, p.z);

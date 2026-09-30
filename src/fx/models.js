@@ -407,6 +407,7 @@ export class Chariot extends Unit {
     this.flag = makeFlag(M.flag, TEAM[team].name, team);
     this.flag.position.set(0, 1.08, 0);
     pole.add(this.flag);
+    this.mats.flagCopy = this.flag.material;
   }
 
   run(phase, speed = 1) {

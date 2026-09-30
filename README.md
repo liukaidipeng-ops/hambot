@@ -4,6 +4,17 @@
 
 ![主界面](docs/screenshots/hero.jpg)
 
+## 截图
+
+| | |
+| --- | --- |
+| ![对局](docs/screenshots/gameplay.jpg) 对局界面 | ![手机](docs/screenshots/mobile.jpg) 手机竖屏 |
+| ![炮](docs/screenshots/cannon.jpg) 炮：子弹时间追踪炮弹 | ![车](docs/screenshots/chariot.jpg) 车：驷马战车涉水冲锋 |
+| ![马](docs/screenshots/cavalry.jpg) 马：铁骑突袭 | ![兵](docs/screenshots/phalanx.jpg) 兵：长矛方阵突刺 |
+| ![象](docs/screenshots/elephant.jpg) 相：战象践踏 | ![士](docs/screenshots/archers.jpg) 士：万箭齐发 |
+| ![帅](docs/screenshots/sword.jpg) 帅：天子之剑 | ![渡河](docs/screenshots/boat.jpg) 过河：乘舟摆渡 |
+| ![乌江](docs/screenshots/wujiang.jpg) 结局 · 乌江 | ![彭城](docs/screenshots/pengcheng.jpg) 结局 · 彭城 |
+
 ## 特色
 
 - **真实的木质棋子与棋盘**：黄杨木车削棋子、刻字描漆；花梨木棋盘嵌于回纹石框，棋盘浮于黄昏云海之上。

@@ -15,6 +15,7 @@ const defaults = () => ({
   sfx: 0.9,
   music: 0.45,
   voice: true,
+  muted: false,
   autoFlip: true,
   clientId: (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2) + Date.now()).replace(/-/g, '').slice(0, 20),
   aiLevel: 'medium',

@@ -104,10 +104,23 @@ export class FX {
     return 0.6;
   }
 
+  // 点击屏幕快进当前动画
+  skip() {
+    if (!this.playing || this.fast) return;
+    this.fast = true;
+    this.stage.timeScale = 3.5;
+  }
+
+  setTimeScale(x) {
+    this.stage.timeScale = this.fast ? 3.5 : x;
+  }
+
   // ---------- 主入口 ----------
   async playMove(rec, match) {
     const { mover, victim } = this.pieces.relocate(rec.from, rec.to);
     if (!mover) return;
+    this.playing = true;
+    this.fast = false;
     const type = pieceType(rec.piece);
     const lv = this.level;
     this.skipping = false;
@@ -116,6 +129,10 @@ export class FX {
     try {
       if (rec.captured && victim) {
         const cine = this.cinematics[type];
+        if (lv === 'full' && cine && !this._skipHinted) {
+          this._skipHinted = true;
+          setTimeout(() => this.app.ui?.toast('轻触屏幕可快进', 1600), 900);
+        }
         if (lv === 'full' && cine) await cine(this, rec, mover, victim);
         else await this.basicCapture(rec, mover, victim);
       } else if (rec.crossesRiver && lv !== 'off' && this.cinematics.boat) {
@@ -136,6 +153,8 @@ export class FX {
       if (victim && victim.parent) this.pieces.disposePiece(victim);
       this.rig.cine.weight = Math.min(this.rig.cine.weight, 1);
       if (this.rig.cine.weight > 0) this.cameraRelease(0.6);
+      this.playing = false;
+      this.fast = false;
       this.stage.timeScale = 1;
     }
   }
@@ -387,11 +406,12 @@ export class FX {
 
   // 慢动作
   async slowmo(scale = 0.25, dur = 0.5) {
+    if (this.fast) return;
     const st = this.stage;
-    await this.anim.tween(0.08, (t) => (st.timeScale = 1 + (scale - 1) * t), Ease.linear, true);
-    await this.anim.waitReal(dur);
-    await this.anim.tween(0.25, (t) => (st.timeScale = scale + (1 - scale) * t), Ease.inQuad, true);
-    st.timeScale = 1;
+    await this.anim.tween(0.08, (t) => (st.timeScale = this.fast ? 3.5 : 1 + (scale - 1) * t), Ease.linear, true);
+    if (!this.fast) await this.anim.waitReal(dur);
+    await this.anim.tween(0.25, (t) => (st.timeScale = this.fast ? 3.5 : scale + (1 - scale) * t), Ease.inQuad, true);
+    this.setTimeScale(1);
   }
 
   // ---------- 悔棋回放 ----------

@@ -74,7 +74,8 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
 .menu-title { font-family: var(--brush); font-weight: normal; margin: 0; font-size: clamp(56px, 11vw, 120px); letter-spacing: .12em; line-height: 1.1;
   background: linear-gradient(180deg, #fff3cf 10%, #f0c878 45%, #b07a30 90%); -webkit-background-clip: text; background-clip: text; color: transparent;
   filter: drop-shadow(0 4px 18px rgba(0,0,0,.6)) drop-shadow(0 0 30px rgba(240,170,80,.25)); padding-left: .12em; }
-.menu-sub { letter-spacing: 6px; color: var(--paper-dim); font-size: clamp(13px, 2.2vw, 18px); margin-top: 4px; text-shadow: 0 2px 8px rgba(0,0,0,.8); }
+.menu-sub { letter-spacing: 6px; color: #f3e6c8; font-size: clamp(13px, 2.2vw, 18px); margin-top: 6px; padding: 3px 14px; border-radius: 20px;
+  background: radial-gradient(ellipse at center, rgba(10,6,5,.55), rgba(10,6,5,0) 75%); text-shadow: 0 1px 3px #000, 0 0 12px rgba(0,0,0,.9); }
 .menu-btns { display: flex; flex-direction: column; gap: 14px; align-items: center; opacity: 0; transform: translateY(20px); transition: all .8s ease .35s; }
 .menu.in .menu-btns { opacity: 1; transform: none; }
 .menu-foot { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: center; text-shadow: 0 2px 6px rgba(0,0,0,.9); }
@@ -174,6 +175,7 @@ input[type=range] { width: 100%; accent-color: #c0392b; }
 .room-tag { font-size: 12px; color: var(--paper-dim); letter-spacing: 1px; margin-right: 4px; }
 .sys { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--gold-line); background: rgba(20,12,10,.75); font-family: var(--brush); font-size: 20px; color: var(--gold-hi); }
 .sys:hover { border-color: var(--gold); }
+.sys.off { color: var(--paper-dim); text-decoration: line-through; opacity: .7; }
 .hud-actions { display: flex; gap: 8px; }
 .act { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 54px; padding: 6px 0 5px; border-radius: 6px; border: 1px solid var(--gold-line);
   background: linear-gradient(180deg, rgba(40,26,20,.9), rgba(20,13,10,.9)); transition: all .15s; }

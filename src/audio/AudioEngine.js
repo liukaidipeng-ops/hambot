@@ -18,7 +18,7 @@ export class AudioEngine {
     window.addEventListener('pointerdown', unlock, true);
     window.addEventListener('keydown', unlock, true);
     settings.onChange((k) => {
-      if (k === 'sfx' || k === 'music') this.applyVolumes();
+      if (k === 'sfx' || k === 'music' || k === 'muted') this.applyVolumes();
     });
     document.addEventListener('visibilitychange', () => {
       if (!this.ctx) return;
@@ -91,8 +91,9 @@ export class AudioEngine {
   applyVolumes() {
     if (!this.ready) return;
     const t = this.ctx.currentTime;
-    this.sfx.gain.setTargetAtTime(settings.get('sfx') * 0.9, t, 0.05);
-    this.musicBus.gain.setTargetAtTime(settings.get('music') * 0.55, t, 0.2);
+    const on = settings.get('muted') ? 0 : 1;
+    this.sfx.gain.setTargetAtTime(settings.get('sfx') * 0.9 * on, t, 0.05);
+    this.musicBus.gain.setTargetAtTime(settings.get('music') * 0.55 * on, t, 0.2);
   }
 
   impulse(dur, decay) {
@@ -713,7 +714,7 @@ export class AudioEngine {
 
   // ---------- 语音 ----------
   speak(text, { rate = 0.82, pitch = 0.7, onEnd } = {}) {
-    if (!settings.get('voice') || !window.speechSynthesis) {
+    if (!settings.get('voice') || settings.get('muted') || !window.speechSynthesis) {
       onEnd?.();
       return false;
     }

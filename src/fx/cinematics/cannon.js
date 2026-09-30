@@ -78,7 +78,7 @@ export async function cannonStrike(fx, rec, mover, victim) {
   const camFrom = cine.pos.clone();
   const lookFrom = cine.look.clone();
   fx.audio.play('whoosh', { dur: flight, from: 300, to: 1800, vol: 0.35 });
-  fx.stage.timeScale = 0.6;
+  fx.setTimeScale(0.6);
   await fx.anim.tween(flight, (t) => {
     const p = muzzle.clone().lerp(target, t);
     p.y += Math.sin(Math.PI * t) * peak;
@@ -95,7 +95,7 @@ export async function cannonStrike(fx, rec, mover, victim) {
     fx.sparks.emit({ count: 2, pos: [p.x, p.y, p.z], vel: () => [-vel.x * 20 + rand(-0.6, 0.6), rand(-0.3, 0.6), -vel.z * 20 + rand(-0.6, 0.6)], life: [0.2, 0.45], size: 0.03, color: 0xffe0a0, colorEnd: 0xff4000, tile: 'dot', stretch: 0.05, gravity: 2 });
     fx.smoke.emit({ count: 1, pos: [p.x, p.y, p.z], vel: [0, 0.2, 0], life: 1.1, size: 0.14, sizeEnd: 0.6, color: 0x4a4440, alpha: 0.5, tile: 'smoke', drag: 1 });
   }, Ease.linear);
-  fx.stage.timeScale = 1;
+  fx.setTimeScale(1);
   fx.group.remove(ball);
   ball.geometry.dispose();
   ball.material.dispose();

@@ -107,10 +107,10 @@ export class UI {
       const m = this.modal(body, {
         title,
         closable: opts.closable !== false,
-        onClose: (v) => {
+        onClose: () => {
           if (!done) {
             done = true;
-            resolve(v ?? false);
+            resolve(false);
           }
         },
       });
