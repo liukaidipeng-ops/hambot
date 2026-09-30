@@ -53,6 +53,9 @@ export class HUD {
     acts.push(this.actionBtn('谱', '棋谱', () => this.toggleHistory()));
     acts.push(this.actionBtn('视', '视角', () => app.actions.view()));
     this.historyEl = h('div', { class: 'history panel' }, h('div', { class: 'history-title' }, '棋 谱'), h('ol', { class: 'moves' }));
+    this.againEl = h('div', { class: 'again-bar' },
+      h('button', { class: 'btn primary', onclick: () => app.rematch(match) }, mode === 'online' ? '再战一局' : '再来一局'),
+      h('button', { class: 'btn', onclick: () => app.leave() }, '返回主页'));
     this.banner = h('div', { class: 'turn-banner' });
     this.roomTag = h('div', { class: 'room-tag' });
     this.el = h('div', { class: 'hud' },
@@ -62,6 +65,7 @@ export class HUD {
           h('button', { class: 'sys', title: '设置', onclick: () => app.actions.settings() }, '设'),
           h('button', { class: 'sys', title: '退出', onclick: () => app.actions.exit() }, '退'))),
       this.banner,
+      this.againEl,
       h('div', { class: 'hud-bottom' }, this.bottom, h('div', { class: 'hud-actions' }, acts)),
       this.historyEl);
     this.ui.root.appendChild(this.el);
@@ -170,6 +174,7 @@ export class HUD {
       else if (m.isMyTurn()) this.setTurnBanner(m.myColor === RED ? '执红先行' : '请走棋');
       else this.setTurnBanner(null);
     }
+    this.againEl.classList.toggle('in', !!m.resultShown && !m.opts.spectator);
     const undoBtn = this.el.querySelector('.act[title="悔棋"]');
     if (undoBtn) undoBtn.disabled = m.ended || m.game.history.length === 0;
     if (m.roomCode) this.roomTag.textContent = '房间 ' + m.roomCode;

@@ -172,6 +172,18 @@ export class RelayTransport {
     this.closed = false;
     this.host = null;
     this.lastHostSeen = 0;
+    // 手机切到微信等 App 再回来时，连接可能已被系统挂起：立即检查并补发
+    this._onVis = () => {
+      if (document.hidden || this.closed || !this.client) return;
+      if (!this.client.connected || this.client.ws?.readyState !== 1) {
+        try {
+          this.client.ws?.close();
+        } catch {}
+        this.onBrokerLost();
+      } else if (this.isHost) this.beat();
+      else this.send({ t: 'sync' });
+    };
+    document.addEventListener('visibilitychange', this._onVis);
   }
 
   async connectBroker(url, will) {
@@ -235,13 +247,20 @@ export class RelayTransport {
       for (const c of room.clients.values()) {
         if (c.id !== this.clientId && c.online && now - c.lastSeen > 25000) room.disconnect(c.id);
       }
-      if (now - (this._lastPing || 0) > 8000) {
+      if (now - (this._lastPing || 0) > 6000) {
         this._lastPing = now;
-        this.client.publish(base + '/g', JSON.stringify({ to: '*', m: { t: 'hostbeat' } }));
+        this.beat();
       }
       this.persist();
     }, 1000);
     this.onStatus('online');
+  }
+
+  // 心跳：带上当前手数，客户端据此发现丢包并补发 / 同步
+  beat() {
+    const room = this.host;
+    if (!room || !this.client) return;
+    this.client.publish(TOPIC + this.code + '/g', JSON.stringify({ to: '*', m: { t: 'hostbeat', ply: room.game.history.length, started: room.started, done: !!room.result } }));
   }
 
   persist() {
@@ -290,6 +309,7 @@ export class RelayTransport {
           this.onStatus('reconnected');
           this.send({ t: 'sync' });
         }
+        this.onMessage({ t: 'beat', ply: d.m.ply, started: d.m.started, done: d.m.done });
         return;
       }
       if (d.m.t === 'host_gone') {
@@ -312,7 +332,16 @@ export class RelayTransport {
   }
 
   async onBrokerLost() {
-    if (this.closed) return;
+    if (this.closed || this._reconnecting) return;
+    this._reconnecting = true;
+    try {
+      await this.reconnectLoop();
+    } finally {
+      this._reconnecting = false;
+    }
+  }
+
+  async reconnectLoop() {
     this.onStatus('offline');
     let delay = 1000;
     while (!this.closed) {
@@ -321,8 +350,11 @@ export class RelayTransport {
       try {
         clearInterval(this.tickTimer);
         clearInterval(this.guestTimer);
-        if (this.isHost) await this.startHost(this.code, this.host);
-        else {
+        if (this.isHost) {
+          await this.startHost(this.code, this.host);
+          this.beat();
+          this.host.broadcastState();
+        } else {
           await this.join(this.code);
           this.send({ t: 'hello', name: this.lastName });
         }
@@ -349,6 +381,7 @@ export class RelayTransport {
 
   close() {
     this.closed = true;
+    document.removeEventListener('visibilitychange', this._onVis);
     clearInterval(this.tickTimer);
     clearInterval(this.guestTimer);
     try {

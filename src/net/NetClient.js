@@ -48,20 +48,33 @@ export class NetClient {
     const t = await this.makeTransport();
     this.code = await t.join(code);
     this.hello();
-    // 等待房间回应
+    // 等待房间回应（房主可能正切在微信里发链接，最多等一分钟）
+    const limit = this.mode === 'server' ? 10000 : 60000;
     await new Promise((resolve, reject) => {
       const t0 = Date.now();
+      let lastHello = t0;
+      let hinted = false;
       const iv = setInterval(() => {
+        const el = Date.now() - t0;
         if (this.state) {
           clearInterval(iv);
           resolve();
         } else if (this.closed) {
           clearInterval(iv);
           reject(new Error('已取消'));
-        } else if (Date.now() - t0 > 9000) {
+        } else if (el > limit) {
           clearInterval(iv);
           reject(new Error('房间不存在，或房主已离开。请确认房间号后重试。'));
-        } else if ((Date.now() - t0) % 3000 < 300) this.hello();
+        } else {
+          if (Date.now() - lastHello > 3000) {
+            lastHello = Date.now();
+            this.hello();
+          }
+          if (!hinted && el > 8000) {
+            hinted = true;
+            this.app.ui.toast('正在等待房主响应……（请房主回到游戏页面）', 5000);
+          }
+        }
       }, 300);
     });
   }
@@ -72,7 +85,26 @@ export class NetClient {
 
   // ---------- 发送 ----------
   sendMove(from, to, ply) {
+    this.lastMoveSent = { from, to, ply, at: Date.now() };
     this.t.send({ t: 'move', from, to, ply });
+  }
+
+  // 房主心跳：比对手数，补发丢失的走子或请求同步
+  onBeat(b) {
+    const m = this.match;
+    if (!m) {
+      if (b.started && this.state && !this.state.started) this.t.send({ t: 'sync' });
+      return;
+    }
+    const local = m.game.history.length;
+    if (b.ply === local) return;
+    const lm = this.lastMoveSent;
+    if (b.ply === local - 1 && lm && lm.ply === b.ply && Date.now() - lm.at > 2500) {
+      lm.at = Date.now();
+      this.t.send({ t: 'move', from: lm.from, to: lm.to, ply: lm.ply });
+    } else if (b.ply > local || (b.ply < local - 1)) {
+      this.t.send({ t: 'sync' });
+    }
   }
 
   request(kind) {
@@ -124,6 +156,8 @@ export class NetClient {
     switch (msg.t) {
       case 'state':
         return this.onState(msg);
+      case 'beat':
+        return this.onBeat(msg);
       case 'move': {
         if (!m) return;
         const g = m.game;

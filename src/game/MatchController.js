@@ -104,7 +104,9 @@ export class MatchController {
 
   onSquare(s) {
     if (!this.canInteract()) {
-      if (s >= 0 && !this.ended && !this.isMyTurn()) this.app.ui.toast(this.mode === 'online' ? '请等待对方走棋' : '对方思考中……', 900);
+      if (s >= 0 && !this.ended && !this.isMyTurn()) {
+        this.app.ui.toast(this.opts.spectator ? '观战中' : this.mode === 'online' ? '请等待对方走棋' : '对方思考中……', 900);
+      }
       return;
     }
     const g = this.game;

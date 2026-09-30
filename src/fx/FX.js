@@ -9,6 +9,7 @@ import { canvasTexture, woodCanvas, WOOD, radialGlowTexture } from '../render/te
 import { settings } from '../core/settings.js';
 import { stampText } from '../ui/stamp.js';
 import { TEAM } from './team.js';
+import { Soldier, Cavalry, Cannon, Chariot, Elephant, GiantSword, Boat } from './models.js';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 
@@ -54,7 +55,6 @@ export class FX {
 
   // 预热：生成模型并预编译着色器，避免首次战斗卡顿
   async prewarm() {
-    const models = await import('./models.js');
     const scene = new THREE.Scene();
     scene.add(new THREE.AmbientLight(0xffffff, 1));
     const dl = new THREE.DirectionalLight(0xffffff, 1);
@@ -62,10 +62,10 @@ export class FX {
     scene.add(dl);
     const units = [];
     for (const team of [0, 1]) {
-      units.push(new models.Soldier(team, { weapon: 'spear', shield: true }), new models.Cavalry(team), new models.Cannon(team));
+      units.push(new Soldier(team, { weapon: 'spear', shield: true }), new Cavalry(team), new Cannon(team));
     }
-    units.push(new models.Chariot(0), new models.Elephant(1), new models.GiantSword(0));
-    const boat = new models.Boat();
+    units.push(new Chariot(0), new Elephant(1), new GiantSword(0));
+    const boat = new Boat();
     for (const u of units) {
       u.dissolve = 0.5;
       scene.add(u.root);

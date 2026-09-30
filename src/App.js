@@ -324,6 +324,8 @@ export class App {
   }
 
   showResult(match, result) {
+    match.resultShown = true;
+    this.ui.hud.update(match);
     const winner = result.winner;
     const me = match.mode === 'local' ? null : match.myColor;
     let seal;
