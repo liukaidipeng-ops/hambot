@@ -1,0 +1,26 @@
+{
+  "name": "chuhan-xiangqi-3d",
+  "version": "1.0.0",
+  "private": true,
+  "description": "楚河汉界 · 三维中国象棋联机对战",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview --host",
+    "start": "node server/index.js",
+    "test": "node --test tests/*.test.js",
+    "fonts": "python3 scripts/subset-fonts.py"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "qrcode-generator": "^2.0.4",
+    "three": "^0.186.1",
+    "vite": "^8.0.0"
+  }
+}
