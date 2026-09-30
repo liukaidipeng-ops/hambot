@@ -13,7 +13,8 @@
 | ![马](docs/screenshots/cavalry.jpg) 马：铁骑突袭 | ![兵](docs/screenshots/phalanx.jpg) 兵：长矛方阵突刺 |
 | ![象](docs/screenshots/elephant.jpg) 相：战象践踏 | ![士](docs/screenshots/archers.jpg) 士：万箭齐发 |
 | ![帅](docs/screenshots/sword.jpg) 帅：天子之剑 | ![渡河](docs/screenshots/boat.jpg) 过河：乘舟摆渡 |
-| ![乌江](docs/screenshots/wujiang.jpg) 结局 · 乌江 | ![彭城](docs/screenshots/pengcheng.jpg) 结局 · 彭城 |
+| ![乌江](docs/screenshots/wujiang.jpg) 结局 · 乌江：“且籍与江东子弟八千人渡江而西……” | ![乌江](docs/screenshots/wujiang2.jpg) 结局 · 乌江：举剑向天 |
+| ![彭城](docs/screenshots/pengcheng.jpg) 结局 · 彭城：“吾欲捐关以东等弃之……” | |
 
 ## 特色
 

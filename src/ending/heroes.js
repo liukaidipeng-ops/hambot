@@ -147,6 +147,7 @@ export class Hero {
     const M = {
       armor: new THREE.MeshStandardMaterial({ color: xy ? '#2a2624' : '#3a2a24', roughness: 0.45, metalness: 0.7 }),
       trim: new THREE.MeshStandardMaterial({ color: '#c89a48', roughness: 0.35, metalness: 0.9 }),
+      mirror: new THREE.MeshStandardMaterial({ color: '#a88a50', roughness: 0.55, metalness: 0.7 }),
       skin: new THREE.MeshStandardMaterial({ color: '#b98464', roughness: 0.7, map: clayTex }),
       cloth: new THREE.MeshStandardMaterial({ color: xy ? '#7a1410' : '#8a2418', roughness: 0.85, side: THREE.DoubleSide }),
       robe: new THREE.MeshStandardMaterial({ color: xy ? '#1c1a1e' : '#6e1c14', roughness: 0.8, side: THREE.DoubleSide }),
@@ -167,13 +168,13 @@ export class Hero {
     mesh(this.chest, new THREE.TorusGeometry(0.16, 0.025, 6, 24), M.trim, 0, 0.04, 0, Math.PI / 2, 0, 0, [1, 0.8, 1]);
     if (xy) {
       // 护心镜
-      mesh(this.chest, new THREE.CylinderGeometry(0.07, 0.07, 0.02, 20), M.trim, 0, 0.28, 0.14, Math.PI / 2, 0, 0);
+      mesh(this.chest, new THREE.CylinderGeometry(0.07, 0.07, 0.02, 20), M.mirror, 0, 0.28, 0.14, Math.PI / 2, 0, 0);
       for (const sx of [-1, 1]) mesh(this.chest, g('pauldron', SH.pauldron), M.armor, sx * 0.23, 0.38, 0, 0, 0, sx * 0.35);
       for (const sx of [-1, 1]) mesh(this.chest, new THREE.TorusGeometry(0.1, 0.012, 5, 16, Math.PI), M.trim, sx * 0.23, 0.37, 0, 0, Math.PI / 2, sx * 0.35);
     } else {
       // 交领
-      mesh(this.chest, new THREE.BoxGeometry(0.05, 0.3, 0.02), M.trim, 0.03, 0.28, 0.13, 0, 0, 0.5);
-      mesh(this.chest, new THREE.BoxGeometry(0.05, 0.3, 0.02), M.trim, -0.03, 0.28, 0.13, 0, 0, -0.5);
+      mesh(this.chest, new THREE.BoxGeometry(0.045, 0.24, 0.02), M.trim, -0.055, 0.32, 0.125, 0, 0, 0.45);
+      mesh(this.chest, new THREE.BoxGeometry(0.045, 0.24, 0.02), M.trim, 0.055, 0.32, 0.125, 0, 0, -0.45);
     }
     // 头
     this.neck = joint(this.chest, 0, 0.48, 0.01);
