@@ -231,7 +231,10 @@ export class App {
           app.ui.toast('已向对方请求悔棋……');
           return;
         }
-        if (m.busy) return;
+        if (m.busy) {
+          app.fx.skip();
+          app.ui.toast('悔棋……', 800);
+        }
         await m.undo();
       },
       async draw() {
