@@ -29,14 +29,16 @@ export class AudioEngine {
 
   unlock() {
     if (this.ready) {
-      if (this.ctx.state === 'suspended') this.ctx.resume();
+      if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
       return;
     }
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return;
     const ctx = new AC({ latencyHint: 'interactive' });
     this.ctx = ctx;
-    ctx.resume();
+    try {
+      ctx.resume?.()?.catch?.(() => {});
+    } catch {}
     const comp = ctx.createDynamicsCompressor();
     comp.threshold.value = -14;
     comp.knee.value = 12;
@@ -531,7 +533,7 @@ export class AudioEngine {
   }
 
   // 弓弦 + 箭雨
-  sfx_arrows(t, { count = 16, spread = 0.7 } = {}) {
+  sfx_arrows(t, { count = 18, spread = 0.7 } = {}) {
     const tw = this.osc('triangle', 180, t, 0.2);
     tw.frequency.exponentialRampToValueAtTime(120, t + 0.15);
     const tg = this.gain();
@@ -547,7 +549,7 @@ export class AudioEngine {
       const g = this.gain();
       n.connect(bp).connect(g);
       g.gain.setValueAtTime(0.0001, tt);
-      g.gain.exponentialRampToValueAtTime(0.12, tt + 0.15);
+      g.gain.exponentialRampToValueAtTime(0.2, tt + 0.15);
       g.gain.exponentialRampToValueAtTime(0.0001, tt + 0.32);
       this.out(g, 0.2, rand(-0.7, 0.7));
     }

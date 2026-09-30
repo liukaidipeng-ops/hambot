@@ -1,6 +1,6 @@
 // 特效导演：根据走法选择动画（普通走子 / 渡河 / 行军 / 吃子战斗电影镜头）
 import * as THREE from 'three';
-import { KING, ADVISOR, ELEPHANT, HORSE, ROOK, CANNON, PAWN, pieceType, pieceColor, RED } from '../../shared/xiangqi.js';
+import { KING, ADVISOR, ELEPHANT, HORSE, ROOK, CANNON, PAWN, pieceType, pieceColor, RED, findKing, genPseudoMoves } from '../../shared/xiangqi.js';
 import { squareXZ, rankZ, RIVER_HALF, WATER_Y } from '../render/coords.js';
 import { ParticleSystem } from './Particles.js';
 import { Debris } from './Debris.js';
@@ -39,6 +39,7 @@ export class FX {
 
     this.ringTex = radialGlowTexture(128);
     this.waveTex = shockTexture();
+    this.beamTex = beamTexture();
     this.pool = [];
 
     this.cinematics = {};
@@ -405,8 +406,37 @@ export class FX {
   }
 
   // ---------- 将军 ----------
-  async checkStamp(rec) {
+  // 从将军的棋子到被将的将帅画一道光
+  threatLines(board, color) {
+    const ks = findKing(board, color ^ 1);
+    if (ks < 0) return;
+    const moves = genPseudoMoves(board, color, [], true);
+    const froms = moves.filter((m) => m >> 7 === ks).map((m) => m & 127);
+    const K = this.sq(ks, 0.3);
+    for (const f of froms) {
+      const A = this.sq(f, 0.3);
+      const len = A.distanceTo(K);
+      const geo = new THREE.PlaneGeometry(len, 0.14);
+      const mat = new THREE.MeshBasicMaterial({ map: this.beamTex, color: 0xff3a20, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, side: THREE.DoubleSide });
+      const m = new THREE.Mesh(geo, mat);
+      m.position.copy(A).lerp(K, 0.5);
+      m.rotation.set(-Math.PI / 2, 0, -Math.atan2(K.z - A.z, K.x - A.x));
+      m.renderOrder = 25;
+      this.group.add(m);
+      this.anim.tween(1.4, (t) => {
+        mat.opacity = Math.sin(t * Math.PI) * (0.7 + 0.3 * Math.sin(t * 30));
+        m.scale.set(Math.min(1, t * 4), 1, 1);
+      }, Ease.linear).then(() => {
+        this.group.remove(m);
+        geo.dispose();
+        mat.dispose();
+      });
+    }
+  }
+
+  async checkStamp(rec, board) {
     const color = pieceColor(rec.piece);
+    if (board) this.threatLines(board, color);
     this.audio.play('check');
     this.stage.shake(0.06, 4);
     await stampText('将', { color: color === RED ? '#d8321f' : '#1a1a1a', sub: '将军', duration: 1100 });
@@ -476,6 +506,28 @@ export class FX {
     const txt = result.reason === 'checkmate' ? '绝杀' : result.reason === 'stalemate' ? '困毙' : null;
     if (txt) await stampText(txt, { color: '#c0271b', duration: 1800, big: true });
   }
+}
+
+function beamTexture() {
+  const c = document.createElement('canvas');
+  c.width = 128;
+  c.height = 32;
+  const ctx = c.getContext('2d');
+  const g = ctx.createLinearGradient(0, 0, 0, 32);
+  g.addColorStop(0, 'rgba(255,255,255,0)');
+  g.addColorStop(0.5, 'rgba(255,255,255,1)');
+  g.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 128, 32);
+  const h = ctx.createLinearGradient(0, 0, 128, 0);
+  h.addColorStop(0, 'rgba(0,0,0,1)');
+  h.addColorStop(0.08, 'rgba(0,0,0,0)');
+  h.addColorStop(0.92, 'rgba(0,0,0,0)');
+  h.addColorStop(1, 'rgba(0,0,0,1)');
+  ctx.globalCompositeOperation = 'destination-out';
+  ctx.fillStyle = h;
+  ctx.fillRect(0, 0, 128, 32);
+  return new THREE.CanvasTexture(c);
 }
 
 function shockTexture() {

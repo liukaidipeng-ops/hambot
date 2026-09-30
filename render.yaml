@@ -1,0 +1,9 @@
+# Render.com 一键部署（Blueprint）：New → Blueprint → 选择本仓库
+services:
+  - type: web
+    name: chuhan-xiangqi
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health

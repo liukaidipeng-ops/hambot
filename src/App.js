@@ -382,7 +382,7 @@ export class App {
     if (!rec) throw new Error('illegal debug move');
     this._debugDone = false;
     await this.fx.playMove(rec);
-    if (rec.check) await this.fx.checkStamp(rec);
+    if (rec.check) await this.fx.checkStamp(rec, g.board);
     this._debugDone = true;
   }
 

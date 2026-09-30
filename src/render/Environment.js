@@ -73,7 +73,7 @@ function makeClouds(quality) {
     transparent: true,
     depthWrite: false,
     fog: false,
-    defines: { LIT: quality === 'low' ? 0 : 1 },
+    defines: { LIT: quality === 'high' ? 1 : 0 },
     uniforms: {
       uTime: { value: 0 },
       uLit: { value: PALETTE.cloudLit },

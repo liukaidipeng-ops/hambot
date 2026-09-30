@@ -49,6 +49,10 @@ def collect_chars():
             continue
         with open(p, encoding='utf-8') as fh:
             text = fh.read()
+        if p.endswith('.js') or p.endswith('.css'):
+            # 去掉注释（注释里的汉字不需要进字库）
+            text = re.sub(r'/\*.*?\*/', '', text, flags=re.S)
+            text = re.sub(r'(^|\s)//\s.*$', '', text, flags=re.M)
         for ch in text:
             if ord(ch) > 0x2000:
                 chars.add(ch)

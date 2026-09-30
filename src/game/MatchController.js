@@ -46,6 +46,10 @@ export class MatchController {
     app.rig.onHover = (x, y) => this.onScreenHover(x, y);
     app.ui.hud.show(this);
     this.updateHud();
+    if (!settings.get('tutorialSeen') && this.mode !== 'online') {
+      settings.set('tutorialSeen', true);
+      setTimeout(() => app.ui.toast('点击己方棋子，再点击发光的落点即可走棋 · 拖动空白处旋转视角', 4200), 1200);
+    }
     this.startClock();
     this.maybeAITurn();
   }
@@ -53,6 +57,7 @@ export class MatchController {
   dispose() {
     this.disposed = true;
     this.ai?.dispose();
+    if (this.hintAI && this.hintAI !== this.ai) this.hintAI.dispose();
     this.stopClockTimer();
     const rig = this.app.rig;
     rig.onTap = null;
@@ -193,7 +198,7 @@ export class MatchController {
       const ks = findKing(this.game.board, rec.color ^ 1);
       // 只在当前局面仍为该步之后时显示
       if (this.game.history[this.game.history.length - 1] === rec) this.pieces.setCheck(ks);
-      await app.fx.checkStamp(rec);
+      await app.fx.checkStamp(rec, this.game.board);
     }
     const warn = this.game.history[this.game.history.length - 1] === rec ? this.game.perpetualWarning() : null;
     if (warn !== null && !rec.result) app.ui.toast(`${warn === RED ? '红方' : '黑方'}长将，再重复将判负`, 2200);
