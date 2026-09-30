@@ -1,6 +1,6 @@
 // 碎木块（实例化）+ 简易刚体（被击飞的棋子、劈开的两半）
 import * as THREE from 'three';
-import { RIVER_HALF, WATER_Y } from '../render/coords.js';
+import { RIVER_HALF, WATER_Y, BOARD_HALF_W, BOARD_HALF_D } from '../render/coords.js';
 
 const tmpM = new THREE.Matrix4();
 const tmpQ = new THREE.Quaternion();
@@ -10,8 +10,8 @@ const tmpP = new THREE.Vector3();
 const AXIS = new THREE.Vector3();
 
 function floorAt(x, z) {
-  if (Math.abs(z) < RIVER_HALF - 0.02 && Math.abs(x) < 5.2) return WATER_Y - 0.4; // 落水下沉
-  if (Math.abs(x) > 5.2 || Math.abs(z) > 6.2) return -30;
+  if (Math.abs(z) < RIVER_HALF - 0.02 && Math.abs(x) < BOARD_HALF_W + 0.4) return WATER_Y - 0.4; // 落水下沉
+  if (Math.abs(x) > BOARD_HALF_W + 0.4 || Math.abs(z) > BOARD_HALF_D + 0.4) return -30;
   return 0;
 }
 

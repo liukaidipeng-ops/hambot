@@ -154,9 +154,9 @@ export class BoardView {
       map,
       normalMap: normal,
       normalScale: new THREE.Vector2(0.6, 0.6),
-      roughness: 0.52,
-      clearcoat: 0.35,
-      clearcoatRoughness: 0.35,
+      roughness: 0.58,
+      clearcoat: 0.18,
+      clearcoatRoughness: 0.55,
     });
     const sideWood = canvasTexture(woodCanvas('sandal', 256, 256, WOOD.sandalwood), { repeat: true });
     const sideMat = new THREE.MeshStandardMaterial({ map: sideWood, roughness: 0.6, color: 0xc8a090 });

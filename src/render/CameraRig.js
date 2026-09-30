@@ -1,6 +1,7 @@
 // 镜头控制：玩家视角轨道 + 电影镜头混合 + 触控/鼠标输入
 import * as THREE from 'three';
 import { clamp, lerp } from '../core/anim.js';
+import { BOARD_HALF_W, BOARD_HALF_D } from './coords.js';
 
 const tmpV = new THREE.Vector3();
 
@@ -75,8 +76,8 @@ export class CameraRig {
     if (!this._polarSetByUser) this.goal.polar = this.defaultPolar();
     const cam = new THREE.PerspectiveCamera(this.baseFov, aspect, 0.1, 500);
     const corners = [];
-    const hw = 5.25;
-    const hd = 6.1;
+    const hw = BOARD_HALF_W + 0.45;
+    const hd = BOARD_HALF_D + 0.4;
     for (const x of [-hw, hw]) for (const z of [-hd, hd]) for (const y of [-0.3, 0.35]) corners.push(new THREE.Vector3(x, y, z));
     const s = this.safe;
     const fits = (r) => {

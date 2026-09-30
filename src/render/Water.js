@@ -130,8 +130,8 @@ export class River {
           // 高光
           float spec = pow(max(dot(R, normalize(uSunDir)), 0.0), 180.0);
           col += uSunColor * spec * 2.4;
-          float sparkle = pow(max(dot(R, normalize(uSunDir)), 0.0), 20.0) * step(0.8, noise(p * 40.0 + vec2(-uFlow * 8.0, uTime)));
-          col += uSunColor * sparkle * 0.5;
+          float sparkle = pow(max(dot(R, normalize(uSunDir)), 0.0), 30.0) * step(0.93, noise(p * 30.0 + vec2(-uFlow * 8.0, uTime)));
+          col += uSunColor * sparkle * 0.25;
 
           // 岸边泡沫
           float foamN = noise(p * vec2(10.0, 16.0) + vec2(-uFlow * 5.0, 0.0));

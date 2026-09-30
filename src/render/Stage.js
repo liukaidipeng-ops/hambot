@@ -189,14 +189,19 @@ export class Stage {
         (Math.random() - 0.5) * a,
       );
       cam.position.add(shakeOffset);
-      this.shakeAmt *= Math.exp(-this.shakeDecay * rawDt);
     }
-    const g = this.grade.uniforms;
-    g.uFlash.value *= Math.exp(-6 * rawDt);
-    g.uTime.value = this.realTime % 100;
+    this.decay(rawDt);
     this.composer.render(rawDt);
     if (shakeOffset) cam.position.sub(shakeOffset);
     this.fpsSample(rawDt);
+  }
+
+  // 闪光与震动的衰减
+  decay(dt) {
+    const g = this.grade.uniforms;
+    g.uFlash.value *= Math.exp(-6 * dt);
+    g.uTime.value = (this.realTime || 0) % 100;
+    this.shakeAmt *= Math.exp(-this.shakeDecay * dt);
   }
 
   // 调试：以固定步长推进模拟（不渲染），最后渲染一帧
@@ -206,6 +211,7 @@ export class Stage {
       const d = dt * this.timeScale;
       this.time += d;
       for (const fn of this.updaters) fn(d, this.time, dt);
+      this.decay(dt);
       await new Promise((r) => setTimeout(r, 0));
     }
     this.lastNow = performance.now();

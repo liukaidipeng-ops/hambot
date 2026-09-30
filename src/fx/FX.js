@@ -8,13 +8,11 @@ import { Ease, rand } from '../core/anim.js';
 import { canvasTexture, woodCanvas, WOOD, radialGlowTexture } from '../render/textures.js';
 import { settings } from '../core/settings.js';
 import { stampText } from '../ui/stamp.js';
+import { TEAM } from './team.js';
 
 const V = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 
-export const TEAM = [
-  { glow: new THREE.Color('#ff5a26'), accent: new THREE.Color('#ffcf6a'), metal: new THREE.Color('#8a5a32'), cloth: new THREE.Color('#a8231b'), name: '汉' },
-  { glow: new THREE.Color('#4f8dff'), accent: new THREE.Color('#9fd0ff'), metal: new THREE.Color('#3e4650'), cloth: new THREE.Color('#1f2a3a'), name: '楚' },
-];
+export { TEAM };
 
 export class FX {
   constructor(app) {
@@ -51,6 +49,35 @@ export class FX {
       if (this.flashLight.intensity > 0.01) this.flashLight.intensity *= Math.exp(-dt * 7);
       else this.flashLight.intensity = 0;
     });
+  }
+
+  // 预热：生成模型并预编译着色器，避免首次战斗卡顿
+  async prewarm() {
+    const models = await import('./models.js');
+    const scene = new THREE.Scene();
+    scene.add(new THREE.AmbientLight(0xffffff, 1));
+    const dl = new THREE.DirectionalLight(0xffffff, 1);
+    dl.castShadow = true;
+    scene.add(dl);
+    const units = [];
+    for (const team of [0, 1]) {
+      units.push(new models.Soldier(team, { weapon: 'spear', shield: true }), new models.Cavalry(team), new models.Cannon(team));
+    }
+    units.push(new models.Chariot(0), new models.Elephant(1), new models.GiantSword(0));
+    const boat = new models.Boat();
+    for (const u of units) {
+      u.dissolve = 0.5;
+      scene.add(u.root);
+    }
+    scene.add(boat.root);
+    try {
+      if (this.stage.renderer.compileAsync) await this.stage.renderer.compileAsync(scene, this.stage.camera);
+      else this.stage.renderer.compile(scene, this.stage.camera);
+    } catch (e) {
+      console.warn('prewarm', e);
+    }
+    for (const u of units) u.dispose();
+    boat.dispose();
   }
 
   get level() {
@@ -137,8 +164,8 @@ export class FX {
     await this.anim.wait(0.35);
   }
 
-  landing(s, color, strength = 1) {
-    const p = this.sq(s, 0.02);
+  landing(s, color, strength = 1, at = null) {
+    const p = at ? at.clone().setY(0.02) : this.sq(s, 0.02);
     this.audio.play('clack', { strength });
     this.dustRing(p, 0.6 * strength);
     if (Math.abs(p.z) < RIVER_HALF + 0.5) this.river.ripple(p.x, Math.sign(p.z) * (RIVER_HALF - 0.05), 0.4);
@@ -272,14 +299,17 @@ export class FX {
       topGeo.translate(0, 0.2605, 0);
       const t = new THREE.Mesh(topGeo, top.material);
       t.rotation.y = r;
-      const sideGeo = new THREE.LatheGeometry(side.geometry.parameters.points, 32, alpha + k * Math.PI, Math.PI);
+      const sideGeo = new THREE.LatheGeometry(side.geometry.parameters.points.slice(1), 32, alpha + k * Math.PI, Math.PI);
       const sm = new THREE.Mesh(sideGeo, side.material);
       sm.castShadow = true;
+      const botGeo = new THREE.CircleGeometry(0.395, 24, alpha - Math.PI / 2 + k * Math.PI, Math.PI);
+      botGeo.rotateX(Math.PI / 2);
+      const bot = new THREE.Mesh(botGeo, this.cutMat);
       const cutGeo = new THREE.PlaneGeometry(0.86, 0.25);
       cutGeo.translate(0, 0.13, 0);
       const cut = new THREE.Mesh(cutGeo, this.cutMat);
       cut.rotation.y = Math.atan2(n.x, n.z);
-      h.add(t, sm, cut);
+      h.add(t, sm, cut, bot);
       h.position.copy(base);
       this.group.add(h);
       const out = n.clone().multiplyScalar(k ? -1 : 1);
@@ -294,6 +324,7 @@ export class FX {
           topGeo.dispose();
           sideGeo.dispose();
           cutGeo.dispose();
+          botGeo.dispose();
         },
       });
       halves.push(h);
@@ -379,6 +410,64 @@ export class FX {
     this.audio.play('check');
     this.stage.shake(0.06, 4);
     await stampText('将', { color: color === RED ? '#d8321f' : '#1a1a1a', sub: '将军', duration: 1100 });
+  }
+
+  // 将死：镜头推向被将死的将帅，棋子震颤、赤裂、倾倒
+  async kingFall(color) {
+    let g = null;
+    for (const m of this.pieces.meshes.values()) if (m.userData.type === KING && m.userData.color === color) g = m;
+    if (!g) return;
+    const p = g.position.clone();
+    const cam = this.stage.camera.position.clone().setY(0);
+    const toCam = cam.sub(p).setY(0).normalize();
+    const side = V(toCam.z, 0, -toCam.x);
+    this.pieces.setCheck(-1);
+    this.cameraTo(p.clone().addScaledVector(toCam, 2.0).addScaledVector(side, 0.8).add(V(0, 1.1, 0)), p.clone().add(V(0, 0.2, 0)), 1.1, 38);
+    this.audio.play('drumroll', { dur: 0.9, vol: 0.6 });
+    const top = g.userData.top.material;
+    await this.anim.tween(1.1, (t) => {
+      g.rotation.x = (Math.random() - 0.5) * 0.08 * t;
+      g.rotation.z = (Math.random() - 0.5) * 0.08 * t;
+      top.emissive.setRGB(0.6 * t, 0.05 * t, 0);
+    }, Ease.linear);
+    // 以底边为支点倒下
+    const pivot = new THREE.Group();
+    const dir = side.clone();
+    pivot.position.copy(p).addScaledVector(dir, 0.44);
+    this.group.add(pivot);
+    g.parent.remove(g);
+    pivot.add(g);
+    g.position.set(0, 0, 0).addScaledVector(dir, -0.44);
+    g.rotation.set(0, 0, 0);
+    const axis = V(-dir.z, 0, dir.x);
+    this.audio.play('whoosh', { dur: 0.5, from: 300, to: 900, vol: 0.3 });
+    await this.anim.tween(0.7, (t) => {
+      pivot.quaternion.setFromAxisAngle(axis, -t * Math.PI);
+      pivot.position.y = Math.sin(t * Math.PI) * 0.35;
+    }, Ease.inQuad);
+    pivot.position.y = 0.26;
+    pivot.quaternion.setFromAxisAngle(axis, -Math.PI);
+    this.audio.play('thud', { vol: 1.2 });
+    this.audio.play('clack', { strength: 1.5 });
+    this.dustRing(p.clone().addScaledVector(dir, 0.44), 1.6);
+    this.stage.shake(0.12, 5);
+    await this.anim.tween(0.25, (t) => {
+      pivot.quaternion.setFromAxisAngle(axis, -Math.PI + Math.sin(t * Math.PI) * 0.12);
+      pivot.position.y = 0.26 + Math.sin(t * Math.PI) * 0.06;
+    }, Ease.outQuad);
+    top.emissive.setRGB(0.25, 0.02, 0);
+    this.fallenKing = { pivot, g };
+  }
+
+  // 结算后把倒下的将帅恢复（再来一局前）
+  restoreKing() {
+    if (!this.fallenKing) return;
+    const { pivot, g } = this.fallenKing;
+    this.group.remove(pivot);
+    for (const [s, m] of this.pieces.meshes) if (m === g) this.pieces.meshes.delete(s);
+    this.pieces.all.delete(g);
+    g.userData.top.material.dispose();
+    this.fallenKing = null;
   }
 
   async mateStamp(result) {

@@ -10,6 +10,7 @@ import { settings } from './core/settings.js';
 import { AudioEngine } from './audio/AudioEngine.js';
 import { FX } from './fx/FX.js';
 import { registerCinematics } from './fx/cinematics/index.js';
+import { prebuildShapes } from './fx/shapes.js';
 import { UI, h } from './ui/UI.js';
 import { MatchController } from './game/MatchController.js';
 import { XiangqiGame, RED, BLACK, RESULT_TEXT } from '../shared/xiangqi.js';
@@ -48,8 +49,12 @@ export class App {
     this.rig = new CameraRig(this.stage, this.stage.canvas);
     this.fx = new FX(this);
     registerCinematics(this.fx);
-    setProgress(0.8, '点将出征……');
+    setProgress(0.75, '点将出征……');
     await nextFrame();
+    prebuildShapes();
+    setProgress(0.85, '操练兵马……');
+    await nextFrame();
+    await this.fx.prewarm();
     this.ending = new EndingDirector(this);
     this.ui = new UI(this);
     this.actions = this.makeActions();
@@ -133,6 +138,8 @@ export class App {
       this.match.dispose();
       this.match = null;
     }
+    this.fx.restoreKing();
+    this.rig.cine.weight = 0;
     this.fx.debris.clear();
     this.ending.stop();
   }
@@ -299,7 +306,10 @@ export class App {
   // ---------- 结算 ----------
   async onMatchEnd(match, result) {
     const winner = result.winner;
-    if (result.reason === 'checkmate' || result.reason === 'stalemate') await this.fx.mateStamp(result);
+    if ((result.reason === 'checkmate' || result.reason === 'stalemate') && winner !== null) {
+      if (settings.get('effects') !== 'off') await this.fx.kingFall(winner ^ 1);
+      await this.fx.mateStamp(result);
+    }
     if (match !== this.match) return;
     const perspective = match.mode === 'local' ? null : match.myColor;
     this.ui.hud.el?.classList.remove('in');
@@ -307,6 +317,7 @@ export class App {
       await this.ending.play({ loser: winner ^ 1, winner, reason: result.reason, perspective });
     }
     if (match !== this.match) return;
+    this.fx.cameraRelease(0.1);
     this.ui.hud.el?.classList.add('in');
     this.audio.setMood(winner === null ? 'calm' : perspective === null || perspective === winner ? 'triumph' : 'sad');
     this.showResult(match, result);
@@ -351,6 +362,28 @@ export class App {
         h('button', { class: 'btn', onclick: () => m.close('board') }, '查看棋盘'),
         h('button', { class: 'btn ghost', onclick: () => { m.close('home'); this.leave(); } }, '返回主页')));
     const m = this.ui.modal(body, { closable: true });
+  }
+
+  // 调试：以指定局面开一局人机
+  debugMatch(fen, color = RED) {
+    const players = [];
+    players[color] = { name: settings.get('name') };
+    players[color ^ 1] = { name: 'AI 军师' };
+    return this.beginMatch({ mode: 'ai', myColor: color, level: 'easy', players, fen });
+  }
+
+  // 调试：在指定局面播放一步特效
+  async debugFx(fen, from, to) {
+    this.ui.menu.hide();
+    this.rig.idleSpin = 0;
+    const g = new XiangqiGame(fen);
+    this.pieces.sync(g.board);
+    const rec = g.move(from, to);
+    if (!rec) throw new Error('illegal debug move');
+    this._debugDone = false;
+    await this.fx.playMove(rec);
+    if (rec.check) await this.fx.checkStamp(rec);
+    this._debugDone = true;
   }
 
   rematch(match) {

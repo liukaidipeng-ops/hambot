@@ -1,8 +1,8 @@
 // 棋盘坐标 <-> 世界坐标
 // 为了让楚河汉界能容纳真实的流水与渡船，河道宽度 RIVER_GAP 大于普通格距。
 export const CELL = 1;
-export const RIVER_GAP = 1.9;
-export const RIVER_HALF = 0.5; // 水面半宽
+export const RIVER_GAP = 2.3;
+export const RIVER_HALF = 0.7; // 水面半宽
 export const PIECE_R = 0.44;
 export const PIECE_H = 0.26;
 export const BOARD_MARGIN = 0.78;
